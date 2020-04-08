@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.middleware import csrf
+# from django.middleware import csrf
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import generics, status
 from rest_framework.exceptions import NotAuthenticated
@@ -40,12 +40,12 @@ class TokenViewBase(generics.GenericAPIView):
         response = Response(serializer.validated_data, status=status.HTTP_200_OK)
 
         if api_settings.AUTH_COOKIE:
-            csrf.get_token(self.request)
-            response = self.set_auth_cookies(response, serializer.validated_data)
+            # csrf.get_token(self.request)
+            response = self.set_cookies(response, serializer.validated_data)
 
         return response
 
-    def set_auth_cookies(self, response, data):
+    def set_cookies(self, response, data):
         return response
 
 
@@ -72,7 +72,7 @@ class TokenCookieViewMixin:
                 request.data['refresh'] = token
         return request
 
-    def set_auth_cookies(self, response, data):
+    def set_cookies(self, response, data):
         expires = self.get_refresh_token_expiration()
         response.set_cookie(
             api_settings.AUTH_COOKIE, data['access'],
@@ -138,7 +138,7 @@ class SlidingTokenCookieViewMixin:
                 request.data['token'] = token
         return request
 
-    def set_auth_cookies(self, response, data):
+    def set_cookies(self, response, data):
         response.set_cookie(
             api_settings.AUTH_COOKIE, data['token'],
             expires=datetime.now() + api_settings.REFRESH_TOKEN_LIFETIME,
@@ -197,11 +197,11 @@ class TokenCookieDeleteView(APIView):
         response = Response({})
 
         if api_settings.AUTH_COOKIE:
-            self.delete_auth_cookies(response)
+            self.delete_cookies(response)
 
         return response
 
-    def delete_auth_cookies(self, response):
+    def delete_cookies(self, response):
         response.delete_cookie(
             api_settings.AUTH_COOKIE,
             domain=api_settings.AUTH_COOKIE_DOMAIN,

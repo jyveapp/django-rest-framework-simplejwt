@@ -55,8 +55,8 @@ class JWTAuthentication(authentication.BaseAuthentication):
         if not user or not user.is_active:
             return None
 
-        if api_settings.AUTH_COOKIE:
-            enforce_csrf(request)
+        # if api_settings.AUTH_COOKIE:
+        #     enforce_csrf(request)
 
         return user, validated_token
 

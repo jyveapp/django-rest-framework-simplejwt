@@ -1,7 +1,7 @@
 from datetime import timedelta
 
-from django.conf import settings
-from django.middleware.csrf import REASON_BAD_TOKEN
+# from django.conf import settings
+# from django.middleware.csrf import REASON_BAD_TOKEN
 
 from rest_framework_simplejwt.compat import reverse
 from rest_framework_simplejwt.settings import api_settings
@@ -95,8 +95,7 @@ class TestTestView(APIViewTestCase):
     def test_user_can_get_access_refresh_and_delete_sliding_token_cookies_and_use_them(self):
         with override_api_settings(AUTH_COOKIE='authorization',
                                    AUTH_TOKEN_CLASSES=('rest_framework_simplejwt.tokens.SlidingToken',)):
-            client = self.client_class(enforce_csrf_checks=True)
-            res = client.post(
+            res = self.client.post(
                 reverse('token_obtain_sliding'),
                 data={
                     User.USERNAME_FIELD: self.username,
@@ -104,41 +103,28 @@ class TestTestView(APIViewTestCase):
                 },
             )
 
-            csrf_cookie = res.wsgi_request.environ['CSRF_COOKIE']
-            client.cookies.load({settings.CSRF_COOKIE_NAME: csrf_cookie})
-
-            res = client.get(reverse(self.view_name))
+            res = self.view_get()
 
             self.assertEqual(res.status_code, 200)
             self.assertEqual(res.data['foo'], 'bar')
 
-            res = client.post(reverse(self.view_name))
-
-            self.assertEqual(res.status_code, 403)
-            self.assertTrue(REASON_BAD_TOKEN in res.data['detail'])
-
-            res = client.post(reverse(self.view_name), **{settings.CSRF_HEADER_NAME: csrf_cookie})
-
-            self.assertEqual(res.status_code, 200)
-            self.assertEqual(res.data['foo'], 'bar')
-
-            res = client.post(
+            res = self.client.post(
                 reverse('token_refresh_sliding'),
             )
 
-            res = client.get(reverse(self.view_name))
+            res = self.view_get()
 
             self.assertEqual(res.status_code, 200)
             self.assertEqual(res.data['foo'], 'bar')
 
-            res = client.post(
+            res = self.client.post(
                 reverse('token_delete'),
             )
 
-            res = client.get(reverse(self.view_name))
+            res = self.view_get()
             self.assertEqual(res.status_code, 401)
 
-            res = client.post(
+            res = self.client.post(
                 reverse('token_refresh_sliding'),
             )
             self.assertEqual(res.status_code, 401)
@@ -185,8 +171,7 @@ class TestTestView(APIViewTestCase):
 
     def test_user_can_get_access_refresh_and_delete_token_cookies_and_use_them(self):
         with override_api_settings(AUTH_COOKIE='authorization', ):
-            client = self.client_class(enforce_csrf_checks=True)
-            res = client.post(
+            res = self.client.post(
                 reverse('token_obtain_pair'),
                 data={
                     User.USERNAME_FIELD: self.username,
@@ -194,41 +179,28 @@ class TestTestView(APIViewTestCase):
                 },
             )
 
-            csrf_cookie = res.wsgi_request.environ['CSRF_COOKIE']
-            client.cookies.load({settings.CSRF_COOKIE_NAME: csrf_cookie})
-
-            res = client.get(reverse(self.view_name))
+            res = self.view_get()
 
             self.assertEqual(res.status_code, 200)
             self.assertEqual(res.data['foo'], 'bar')
 
-            res = client.post(reverse(self.view_name))
-
-            self.assertEqual(res.status_code, 403)
-            self.assertTrue(REASON_BAD_TOKEN in res.data['detail'])
-
-            res = client.post(reverse(self.view_name), **{settings.CSRF_HEADER_NAME: csrf_cookie})
-
-            self.assertEqual(res.status_code, 200)
-            self.assertEqual(res.data['foo'], 'bar')
-
-            res = client.post(
+            res = self.client.post(
                 reverse('token_refresh'),
             )
 
-            res = client.get(reverse(self.view_name))
+            res = self.view_get()
 
             self.assertEqual(res.status_code, 200)
             self.assertEqual(res.data['foo'], 'bar')
 
-            res = client.post(
+            res = self.client.post(
                 reverse('token_delete'),
             )
 
-            res = client.get(reverse(self.view_name))
+            res = self.view_get()
             self.assertEqual(res.status_code, 401)
 
-            res = client.post(
+            res = self.client.post(
                 reverse('token_refresh'),
             )
             self.assertEqual(res.status_code, 401)
